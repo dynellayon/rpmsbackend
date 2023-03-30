@@ -30,7 +30,7 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         
-
+ $curdate = date('Y-m-d');
        
        $file = new TaskProgress;
 
@@ -63,8 +63,12 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-       $tasks = Task::latest()->where('employeid',$id)->get();
-                    
+      
+         $tasks = DB::table('tasks')
+                    ->join('users', 'users.id', '=', 'tasks.employeid')
+                    ->where("users.id","=",$id)
+                      ->select('tasks.*','users.positionid')
+                    ->get();         
 return response()->json([
          'status' => 200,
          'emptask' => $tasks,
@@ -91,11 +95,11 @@ return response()->json([
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function showobjective(Request $request)
+    public function showobjective(Request $request,$id)
     {
           $esat = DB::table('kras')
                     ->join('objectives', 'kras.id','=', 'objectives.kraid')
-                    ->where('objectives.rank',1)
+                    ->where('objectives.rank',$id)
                     ->select('objectives.*','kras.name as kraname')
                     ->get();
 
@@ -167,24 +171,28 @@ return  $behaviors;
 
       public function Functionbehavior(Request $request)
       {
-          $esat = DB::table('esat')
+
+
+           $esat = DB::table('esat')
                     ->where('esat.taskid',$request->taskid)
                     ->join('objectives', 'esat.objectiveid','=', 'objectives.id')
                     ->join('kras', 'kras.id','=', 'objectives.kraid')
-                    ->select('objectives.id','objectives.name',
+                    ->select('objectives.id',
                         'objectives.mov','objectives.name','objectives.learnings','objectives.intevention','objectives.timeline','objectives.resources','objectives.feedbacks','kras.name as kraname','esat.level','esat.priotrity','esat.taskid')
                     ->get();
-             $behaviors = DB::table('developement')
-                    ->join('behavioresat', 'developement.id','=', 'behavioresat.behaiorid')
+
+             $behavior = DB::table('behavioresat')
                     ->where('behavioresat.taskid',$request->taskid)
-                    ->select('behavioresat.id','behavioresat.total','developement.corename','developement.description','developement.learn','developement.interven','developement.timeli','developement.resour','developement.feedba','behavioresat.taskid')
-                    ->get();        
+                    ->join('developement', 'behavioresat.behaiorid','=', 'developement.id')
+                   ->select('behavioresat.behaiorid as id','behavioresat.total',
+                        'behavioresat.taskid','developement.corename','developement.description','developement.learn','developement.interven','developement.timeli','developement.resour as resources')
+                    ->get();
 
      return response()->json([
          'esat' => $esat,
-         'behaviors' => $behaviors
-    
-
+         'behavior' => $behavior,
+       
+        
                        ]);
       }
 }

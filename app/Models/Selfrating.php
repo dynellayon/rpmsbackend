@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Coaching extends Model
+class Selfrating extends Model
 {
     use HasFactory;
-     public $table = 'coaching';
+    public $table = 'Selfratings';
     protected $guarded = [ ];
 }

@@ -32,6 +32,7 @@ class ObjectivesController extends Controller
    
  
     }
+
     function highprof(){
 
    return $hprof = DB::table('objectives')
@@ -39,4 +40,13 @@ class ObjectivesController extends Controller
                 ->get();
 
     }
+     function rate(Request $request, $id){
+
+   return $prof = DB::table('objectives')
+                ->where('rank','=', $id)
+                ->get();
+   
+ 
+    }
+
 }

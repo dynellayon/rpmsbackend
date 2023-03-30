@@ -24,7 +24,7 @@ class EvaluatorController extends Controller
                     ->join('users', 'users.id', '=', 'tasks.employeid')
                    ->join('evaluators', 'users.evaluator', '=', 'evaluators.id')
                    ->where('evaluators.id',$request->id)
-                    ->select('users.id','users.name','users.positionid', 'tasks.task','tasks.duedate','tasks.status','tasks.phaseid','tasks.completed_date','evaluators.name as eval')
+                    ->select('tasks.id','users.id as usersid','users.name','users.positionid', 'tasks.task','tasks.duedate','tasks.status','tasks.phaseid','tasks.completed_date','evaluators.name as eval','tasks.evalstatus')
                     ->get();
 
   
@@ -93,16 +93,21 @@ class EvaluatorController extends Controller
       $esat= $request->all();
         foreach($esat as $next){
 
-        $score = Esat::find('tasksid',$next["id"]); 
-        $score->learnings = $next["learnings"]; 
-        $score->intevention = $next["intevention"]; 
-        $score->timeline = $next["timeline"];
-        $score->resources = $next["resources"];
-        $score->save();
+        Esat::where('taskid',$id)
+            ->where('objectiveid',$next["id"])
+            ->update(['learnings'=>$next["learnings"],
+                        'intevention'=>$next["intevention"],
+                        'timeline'=> $next["timeline"],
+                        'resources'=> $next["resources"]
+
+        ]);
         }
+ Task::where('id',$id)
+            ->update(['evalstatus'=>3,
+                        
+        ]);
 
-
-   
+   return $esat;
   
     }
      /**
@@ -112,29 +117,60 @@ class EvaluatorController extends Controller
      * @param  \App\Models\Evaluator  $evaluator
      * @return \Illuminate\Http\Response
     */
-    public function updateBehavior(Request $request)
+    public function updateBehavior(Request $request,$id)
     {
         $behaviors=$request->all();
+         foreach($behaviors as $nex){
 
+        Behavioresat::where('taskid',$id)
+            ->where('behaiorid',$nex["id"])
+            ->update(['learnings'=>$nex["learn"],
+                        'intervention'=>$nex["interven"],
+                        'timeline'=> $nex["timeli"],
+                        'resources'=> $nex["resources"],
+
+        ]);
+        }
     
        
-        return $behaviors;
+        
+    }
+    public function updateBehaviorthree(Request $request,$id)
+    {
+        $behaviors=$request->all();
+         foreach($behaviors as $nex){
+
+        Behavioresat::where('employeeid',$id)
+            ->where('behaiorid',$nex["id"])
+            ->where('phaseid',3)
+            ->update(['learnings'=>$nex["learn"],
+                        'intervention'=>$nex["interven"],
+                        'timeline'=> $nex["timeli"],
+                        'resources'=> $nex["resources"],
+
+        ]);
+        }
+    
+       
+        
     }
      public function feedback(Request $request)
-    {
-      
-
-    
-      
-        evalfeedback::create([ 
+     {
+ 
+        Evalfeedback::create([ 
            'evaluatorid'=>$request->input('id'),
+           'employeeid'=>$request->input('employeeid'),
            'phaseid'=>$request->input('phaseid'),
            'taskid'=>$request->input('taskid'),
            'feedback'=>$request->input('feedback')
            
         ]);
-        
-      
+         Task::where('id',$request->input('taskid'))
+            ->update(['evalstatus'=>3,
+                        'status'=>3,
+                        
+        ]);
+       return "success";
     }
 
     /**

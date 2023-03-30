@@ -10,5 +10,5 @@ class esat extends Model
     use HasFactory;
     
     public $table = 'esat';
-    protected $guarded = ['learnings' ];
+    protected $guarded = [ ];
 }

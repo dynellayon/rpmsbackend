@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Evaluator;
+use Illuminate\Support\Facades\DB;
+use Validator, Input, Redirect; 
 class UserController extends Controller
 {
     function login(Request $request){
@@ -30,9 +32,28 @@ return $user;
     }
     //
     function register(Request $request){
-        //$this->validateEmployee($request);
 
-       $role =Role::where('name','employee')->first();
+           $role =Role::where('name','employee')->first();
+      $validator = Validator::make($request->all(),[
+            'name'=> 'required|max:191',
+            'password'=> 'required|max:191|min:6',
+            'email'=> 'required|email|string|max:191',
+            'image'=>'required|file|mimes:jpeg,jpg,png,bmp,gif,svg',
+            'position'=>'required',
+            'evaluator'=>'required'
+
+        ]);
+ if($validator->fails()){
+        return response()->json([
+         'validator' => $validator->messages(),
+     
+        
+
+        ]);
+
+
+        }else{
+    
         $user = new User;
 
         $user->name = $request->input('name');
@@ -52,9 +73,17 @@ return $user;
         ]);
              
     }
+}
     function userlists(Request $request){
 
-    return User::where('role_id','=',3)->get();
+        $users=DB::table('users')
+                    ->where('users.role_id',3)
+                    ->join('evaluators','users.evaluator','=','evaluators.id')
+                    ->join('position', 'users.positionid', '=', 'position.id')
+                    ->select('users.id','users.name','users.email','evaluators.name as ename','position.name as pname')
+                    ->get();
+
+      return $users;
 
     }
 
@@ -78,11 +107,24 @@ return $user;
 
     }
     function update(Request $request, $id){
-
+     
         $user = User::find($id);
-
+       
         $user->name = $request->input('name');
         $user->email = $request->input('email');
+        $user->departmentid = $request->input('department');
+        if($request->hasFile('image')){
+             $user->image=$request->file('image')->store('users');
+
+        }
+        if($request->input('password')){
+            $user->password =Hash::make($request->input('password'));
+        }
+        if($request->input('position')){
+  $user->positionid = $request->input('position');
+        }if($request->input('evaluator')){
+  $user->evaluator = $request->input('evaluator');
+        }
         $user->update();
         return response()->json([
          'status' => 200,
